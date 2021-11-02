@@ -27,11 +27,14 @@ unsigned int findWinner(unsigned int gameArray[9]) {
 
 int getBestMove(unsigned int gameArray[9], int* parentWins, unsigned int turnInt, unsigned int depth) {
     int bestMove = -1;
+    int wlr = 0;
+    bool drawExists = false;
+    bool winnerExists = false;
     unsigned int winner = findWinner(gameArray);
-    if (winner == 2) { // AI wins
+    if (winner == (turnInt) % 2 + 1) { // Previous won
         *parentWins = 1;
         return -2;
-    } else if (winner == 1) { // Player wins
+    } else if (winner == turnInt) { // Previous lost
         *parentWins = -1;
         return -3;
     } else if (winner == 3) { // Draw
@@ -39,7 +42,7 @@ int getBestMove(unsigned int gameArray[9], int* parentWins, unsigned int turnInt
         return -4;
     } else { // No team won: continue
         for (unsigned int i = 0; i < 9; i++) {
-            int highestWins = -999999;
+            int highestWins = -99999;
             if (gameArray[i] == 0) {
                 int childWins = 0;
                 gameArray[i] = turnInt;
@@ -47,21 +50,29 @@ int getBestMove(unsigned int gameArray[9], int* parentWins, unsigned int turnInt
                 gameArray[i] = 0;
                 *parentWins += childWins;
                 if (bestMoveTmp == -2) {
-                    return i;
-                } else if (bestMoveTmp == -3) {
-                    continue;
-                } else if (bestMoveTmp == -4) {
+                    wlr += 1;
                     bestMove = i;
-                    highestWins = 999999; // Make sure it always picks a draw over a loss. Note: this doesn't effect parentWins
-                } else if (highestWins < childWins) {
+                    winnerExists = true;
+                } else if (bestMoveTmp == -4) {
+                    wlr += 1;
+                    drawExists = true;
+                    if (winnerExists == false) {
+                        bestMove = i;
+                    }
+                } else if (bestMoveTmp == -3) {
+                    wlr -= 1;
+                } else if (highestWins < childWins && winnerExists == false && drawExists == false) {
                     bestMove = i;
                     highestWins = childWins;
                 }
             }
         }
     }
-    if (bestMove == -1) {
+
+    if (wlr == -9) {
         return -3; // All children lost; might want to change the parent as well then
+    } else if (wlr == 9) {
+        return -2; // All the children won, same as above but this is probably impossible
     }
 
     return bestMove;
@@ -152,7 +163,7 @@ int main(){
                                             gameArray[6] = g;
                                             gameArray[7] = h;
                                             gameArray[8] = i;
-                                            turnInt = 2;
+                                            turnInt = 1;
                                             wins = 0;
                                             bestIndex = getBestMove(gameArray, &wins, turnInt, 1);
                                             appendToCSV(&file, gameArray, bestIndex, wins);
