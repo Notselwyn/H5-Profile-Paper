@@ -95,7 +95,7 @@ int main(){
                                   0, 0, 0,
                                   0, 0, 0, }; 
 
-    bool gather_dataset = true;
+    bool gather_dataset = false;
 
 
     if (!gather_dataset) {
