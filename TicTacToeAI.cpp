@@ -46,15 +46,13 @@ int getBestMove(unsigned int gameArray[9], int* parentWins, unsigned int turnInt
                 int bestMoveTmp = getBestMove(gameArray, &childWins, (turnInt) % 2 + 1, depth+1);
                 gameArray[i] = 0;
                 *parentWins += childWins;
-                if (bestMoveTmp == -2 || bestMove == -4) {
+                if (bestMoveTmp == -2) {
                     return i;
                 } else if (bestMoveTmp == -3) {
-                    if (depth == 1) {
-                        continue;
-                    }
-                    return -5;
-                } else if (bestMoveTmp == -5) {
                     continue;
+                } else if (bestMoveTmp == -4) {
+                    bestMove = i;
+                    highestWins = 999999; // Make sure it always picks a draw over a loss. Note: this doesn't effect parentWins
                 } else if (highestWins < childWins) {
                     bestMove = i;
                     highestWins = childWins;
@@ -86,7 +84,7 @@ int main(){
                                   0, 0, 0,
                                   0, 0, 0, }; 
 
-    bool gather_dataset = false;
+    bool gather_dataset = true;
 
 
     if (!gather_dataset) {
