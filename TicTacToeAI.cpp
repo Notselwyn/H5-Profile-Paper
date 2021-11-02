@@ -130,7 +130,6 @@ int main(){
             while ((inputIndex < 0) || (inputIndex > 8) || (gameArray[inputIndex] != 0)) {
                 std::cout << "\nThat cell is invalid. Please pick another one. \nEnter an index (0-8): ";
                 std::cin >> inputIndex;
-
             }
             gameArray[inputIndex] = 1;
 
