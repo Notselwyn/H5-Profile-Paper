@@ -2,17 +2,6 @@
 #include <string>
 #include <fstream>
 
-
-int countOpenCells(unsigned int gameArray[9]) {
-    int c = 0;
-    for (unsigned int i = 0; i < 9; i++) {
-        if (gameArray[i] == 0) {
-            c++;
-        }
-    }
-    return c;
-}
-
 unsigned int findWinner(unsigned int gameArray[9]) {
     for (unsigned int i = 1; i < 3; i++) {
         for (unsigned int j = 0; j < 3; j++) {
@@ -46,7 +35,6 @@ int getBestMove(unsigned int gameArray[9], int* parentWins, unsigned int turnInt
     bool nextWinnerExists = false;
     bool winnerExists = false;
     unsigned int winner = findWinner(gameArray);
-    int openCells = countOpenCells(gameArray);
 
     if (winner == turnInt % 2 + 1) { // Previous won, Stel: nu = 1 en winner() geeft 2 dan return -2 naar vorige
         *parentWins = -1;
