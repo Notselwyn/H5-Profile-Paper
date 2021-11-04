@@ -2,6 +2,17 @@
 #include <string>
 #include <fstream>
 
+
+int countOpenCells(unsigned int gameArray[9]) {
+    int c = 0;
+    for (unsigned int i = 0; i < 9; i++) {
+        if (gameArray[i] == 0) {
+            c++;
+        }
+    }
+    return c;
+}
+
 unsigned int findWinner(unsigned int gameArray[9]) {
     for (unsigned int i = 1; i < 3; i++) {
         for (unsigned int j = 0; j < 3; j++) {
@@ -26,54 +37,87 @@ unsigned int findWinner(unsigned int gameArray[9]) {
 }
 
 int getBestMove(unsigned int gameArray[9], int* parentWins, unsigned int turnInt, unsigned int depth) {
+    int nextBestMove = -1;
+    int nextWorstMove = -1; 
     int bestMove = -1;
-    int wlr = 0;
-    bool drawExists = false;
+    int worstMove = -1;
+    unsigned int wins = 0;
+    unsigned int losses = 0;
+    bool nextWinnerExists = false;
     bool winnerExists = false;
     unsigned int winner = findWinner(gameArray);
-    if (winner == (turnInt) % 2 + 1) { // Previous won
-        *parentWins = 1;
-        return -2;
-    } else if (winner == turnInt) { // Previous lost
+    int openCells = countOpenCells(gameArray);
+
+    if (winner == turnInt % 2 + 1) { // Previous won, Stel: nu = 1 en winner() geeft 2 dan return -2 naar vorige
         *parentWins = -1;
+        return -2;
+    } else if (winner == turnInt) { // Previous lost, Stel: nu = 2 en winner() geeft 2 dan return -3 naar vorige
+        *parentWins = 1;
         return -3;
     } else if (winner == 3) { // Draw
         *parentWins = 0;
         return -4;
     } else { // No team won: continue
+        int highestWlr = -99999;
         for (unsigned int i = 0; i < 9; i++) {
-            int highestWins = -99999;
             if (gameArray[i] == 0) {
-                int childWins = 0;
+                int childWlr = 0;
+
                 gameArray[i] = turnInt;
-                int bestMoveTmp = getBestMove(gameArray, &childWins, (turnInt) % 2 + 1, depth+1);
+                int childBestMove = getBestMove(gameArray, &childWlr, turnInt % 2 + 1, depth + 1);
                 gameArray[i] = 0;
-                *parentWins += childWins;
-                if (bestMoveTmp == -2) {
-                    wlr += 1;
+                *parentWins += childWlr; 
+                if (childBestMove >= 0 && highestWlr < childWlr && winnerExists == false) {
                     bestMove = i;
+                    highestWlr = childWlr;
+                } else if (childBestMove == -2) {
+                    wins += 1;
+                    bestMove = i;
+                    nextBestMove = i;
                     winnerExists = true;
-                } else if (bestMoveTmp == -4) {
-                    wlr += 1;
-                    drawExists = true;
+                    nextWinnerExists = true;
+                } else if (childBestMove == -4) {
                     if (winnerExists == false) {
                         bestMove = i;
                     }
-                } else if (bestMoveTmp == -3) {
-                    wlr -= 1;
-                } else if (highestWins < childWins && winnerExists == false && drawExists == false) {
-                    bestMove = i;
-                    highestWins = childWins;
+                } else if (childBestMove == -3) {
+                    losses += 1;
+                    worstMove = i;
+                    nextWorstMove = i;
+                } else if (childBestMove == -5) {
+                    wins += 1;
+                    winnerExists = true;
+                    if (wins == 1) {
+                        highestWlr = childWlr;
+                        bestMove = i;
+                    } else if (highestWlr < childWlr && nextWinnerExists == false) {
+                        bestMove = i;
+                    }
+                } else if (childBestMove == -6 || childBestMove == -9) {
+                    losses += 1;
+                    worstMove = i;
                 }
             }
         }
     }
 
-    if (wlr == -9) {
-        return -3; // All children lost; might want to change the parent as well then
-    } else if (wlr == 9) {
-        return -2; // All the children won, same as above but this is probably impossible
-    }
+    if (depth == 1) {
+        if (nextBestMove != -1) {
+            return nextBestMove;
+        }
+        return bestMove;
+    } 
+    if (nextWorstMove != -1) {
+        return nextWorstMove;
+    } else if (nextBestMove != -1) {
+        return -6;
+    } else if (losses >= 2) {
+        return -5;
+    } else if (worstMove != -1) {
+        return worstMove;
+    } else if (wins >= 2) { // Not merged with nextBestMove != 1 because of priorization
+        return -6;
+    } 
 
     return bestMove;
 }
@@ -89,13 +133,15 @@ void appendToCSV(std::ofstream* file, unsigned int state[9], int output, int win
 
 
 // Cellstates and winner states: Empty = 0, Player = 1, AI = 2, Draw = 3
-// Exit codes: -1 = No best move, -2 = AI won, -3 = Player won, -4 = Draw, -5 = Skip using recursion
+// Exit codes: -1 = No move found, -2 = Won next,   -3 = Lost next,                     -4 = Draw next, 
+//             -5 = Won future unsolvable,          -6 = Lost future unsolvable,        -7 = All draws
+//             -8 = Won (warning) future,           -9 = Lost (warning) future
 int main(){
     unsigned int gameArray[9] = { 0, 0, 0,
                                   0, 0, 0,
                                   0, 0, 0, }; 
 
-    bool gather_dataset = false;
+    bool gather_dataset = true;
 
 
     if (!gather_dataset) {
@@ -120,7 +166,7 @@ int main(){
             bool nextChild = false;
             unsigned int turnInt = 2;
             int bestIndex = getBestMove(gameArray, &wins, turnInt, 1);
-            if (bestIndex == 2) {
+            if (bestIndex == -2) {
                 std::cout << "Match ended: the AI won" << "\n";
                 break;
             } else if (bestIndex == -3) {
@@ -142,7 +188,7 @@ int main(){
         file.open("tictactoe_dataset.csv", std::ios_base::app); // Open in append mode
 
 
-        unsigned int turnInt = 2;
+        unsigned int turnInt = 0;
         int wins = 0;
         int bestIndex = 0;
         for (int a = 0; a < 3; a++) {
@@ -163,7 +209,7 @@ int main(){
                                             gameArray[6] = g;
                                             gameArray[7] = h;
                                             gameArray[8] = i;
-                                            turnInt = 1;
+                                            turnInt = 2;
                                             wins = 0;
                                             bestIndex = getBestMove(gameArray, &wins, turnInt, 1);
                                             appendToCSV(&file, gameArray, bestIndex, wins);
