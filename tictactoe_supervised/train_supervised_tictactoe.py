@@ -7,7 +7,7 @@ from itertools import product
 
 dataframe = pd.read_csv("../tictactoe_dataset.csv", dtype=str)
 model = tree.DecisionTreeClassifier(max_depth=20)
-model.fit(tuple(tuple(int(y) for y in x) for x in dataframe['state']), tuple(int(x) for x in dataframe['best']))
+model.fit(tuple(tuple(int(y) for y in x) for x in dataframe['state']), dataframe['best'].astype(int).to_list())
 best_list = tuple(dataframe['best'].astype(int).to_list())
 print(f"accuracy: {round(sum(map(lambda x: x[1] == best_list[x[0]], enumerate(model.predict([*product(range(3), repeat=9)])))) / 196.83, 1)}%")
 
