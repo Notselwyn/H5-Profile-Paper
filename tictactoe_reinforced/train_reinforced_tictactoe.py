@@ -5,7 +5,6 @@ import pandas as pd
 from numba import jit
 from functools import cache
 
-
 tracked_dataframe = pd.DataFrame({'Generation': [], 'Average Fitness': [], 'Best Fitness (All Time)': [], 'Best Fitness (Generation)': [], 'Genome Count': []}).set_index("Generation")
 best_fit = 0
 generation = 0
