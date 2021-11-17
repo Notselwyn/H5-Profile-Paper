@@ -1,4 +1,4 @@
-# HS-Essay
+# High School Profile Paper
 
 This is the repository for the files I mention in my highschool essay about artificial intelligence. This is for demonstration only, not meant to be ran so expect unoptimized code.
 
