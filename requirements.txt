@@ -1,0 +1,6 @@
+pyzmq
+neat-python
+pandas
+scikit-learn
+graphviz
+numba
