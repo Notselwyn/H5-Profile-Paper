@@ -25,7 +25,6 @@ class Game:
                 self.ask_array = [self.ask_player_cell, self.ask_model_cell]
             else:
                 self.ask_array = [self.ask_model_cell, self.ask_dataset_cell]
-                #self.ask_array = [self.ask_dataset_cell, self.ask_model_cell]
 
     def __repr__(self):
         st = ""
@@ -158,5 +157,5 @@ class Game:
 with open("supervised_tictactoe.pkl", "rb") as f:
     tictactoe_ml_model = pickle.load(f)
 
-Game(model=tictactoe_ml_model, dataset="../tictactoe_dataset.csv", gather_stats=True).stats()
-#Game(model=tictactoe_ml_model).play()
+#Game(model=tictactoe_ml_model, dataset="../tictactoe_dataset.csv", gather_stats=True).stats()
+Game(model=tictactoe_ml_model).play()
